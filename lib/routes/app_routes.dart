@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zombies_last_dawn_app/presentation/screens/home/home_content.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
@@ -18,6 +19,7 @@ class AppRoutes {
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterScreen(),
     home: (context) => const HomeContent(),
+    home: (context) => const HomeScreen(),
     posts: (context) => const PostsScreen(),
     profile: (context) => const ProfileScreen(),
     categories: (context) => const CategoriesScreen(),
