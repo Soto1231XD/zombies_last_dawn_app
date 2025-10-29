@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../posts/posts_screen.dart';
 import '../categories/categories_screen.dart';
-import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,77 +11,56 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeContent(),
-    const PostsScreen(),
-    const CategoriesScreen(),
-    const ProfileScreen(),
+  // Lista de pantallas
+  final List<Widget> _screens = const [
+    PostsScreen(),
+    CategoriesScreen(),
   ];
+
+  // Cambio de índice al presionar un botón
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F16),
-      body: _screens[_currentIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        transitionBuilder: (child, animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: _screens[_selectedIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         backgroundColor: const Color(0xFF0B0F16),
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
         selectedItemColor: Colors.greenAccent,
         unselectedItemColor: Colors.grey.shade600,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: [
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        items: const [
           BottomNavigationBarItem(
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.home,
-                key: ValueKey(_currentIndex == 0),
-                color: _currentIndex == 0 ? Colors.greenAccent : Colors.grey.shade600,
-              ),
-            ),
-            label: 'Inicio',
+            icon: Icon(Icons.article_outlined),
+            activeIcon: Icon(Icons.article),
+            label: 'Posts',
           ),
           BottomNavigationBarItem(
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.forum,
-                key: ValueKey(_currentIndex == 1),
-                color: _currentIndex == 1 ? Colors.greenAccent : Colors.grey.shade600,
-              ),
-            ),
-            label: 'Foro',
-          ),
-          BottomNavigationBarItem(
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.category,
-                key: ValueKey(_currentIndex == 2),
-                color: _currentIndex == 2 ? Colors.greenAccent : Colors.grey.shade600,
-              ),
-            ),
+            icon: Icon(Icons.category_outlined),
+            activeIcon: Icon(Icons.category),
             label: 'Categorías',
-          ),
-          BottomNavigationBarItem(
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                Icons.person,
-                key: ValueKey(_currentIndex == 3),
-                color: _currentIndex == 3 ? Colors.greenAccent : Colors.grey.shade600,
-              ),
-            ),
-            label: 'Perfil',
           ),
         ],
       ),
     );
   }
 }
+
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
