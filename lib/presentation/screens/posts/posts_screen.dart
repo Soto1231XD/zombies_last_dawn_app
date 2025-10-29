@@ -26,7 +26,7 @@ class PostsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: acción para crear nueva publicación
+          // acción para crear nueva publicación
         },
         backgroundColor: Colors.greenAccent,
         child: const Icon(Icons.add, color: Colors.black),

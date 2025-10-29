@@ -17,10 +17,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Lista de pantallas
   final List<Widget> _screens = const [
-    HomeContent(),       // Inicio
-    PostsContent(),      // Publicaciones
-    CategoriesContent(), // Categorías
-    ProfileScreen(),     // Perfil
+    HomeContent(),      
+    PostsContent(),     
+    CategoriesContent(),
+    ProfileScreen(),    
+  ];
+
+  // Títulos según la pestaña
+  final List<String> _titles = [
+    'Inicio',
+    'Publicaciones',
+    'Categorías',
+    '', 
   ];
 
   // Cambio de índice al presionar un botón
@@ -33,6 +41,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // 🔹 AppBar solo para Inicio, Publicaciones y Categorías
+      appBar: _selectedIndex != 3
+          ? AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              title: Text(
+                _titles[_selectedIndex],
+                style: const TextStyle(
+                  color: Colors.greenAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            )
+          : null,
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         transitionBuilder: (child, animation) {
@@ -71,6 +95,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      // 🔹 Botón flotante solo en Publicaciones
+      floatingActionButton: _selectedIndex == 1
+          ? FloatingActionButton(
+              onPressed: () {
+                // Acción para crear nueva publicación
+              },
+              backgroundColor: Colors.greenAccent,
+              child: const Icon(Icons.add, color: Colors.black),
+            )
+          : null,
     );
   }
 }
