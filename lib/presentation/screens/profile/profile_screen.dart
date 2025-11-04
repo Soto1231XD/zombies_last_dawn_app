@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../services/supabase_service.dart';
+import '../../../routes/app_routes.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,12 +13,24 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
+  String? _userRole; // 🔹 AGREGAR ESTA VARIABLE
 
   @override
   void initState() {
     super.initState();
+    _loadUserData(); // 🔹 CAMBIAR A _loadUserData
+  }
 
-    // Simulacion de carga de datos
+  // 🔹 NUEVO MÉTODO: Cargar datos del usuario
+  Future<void> _loadUserData() async {
+    try {
+      // Cargar el rol del usuario
+      _userRole = await SupabaseService().getUserRole();
+    } catch (e) {
+      _userRole = 'user';
+    }
+    
+    // Simulación de carga de datos
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -26,8 +40,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await SupabaseService().signOut();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al cerrar sesión'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = SupabaseService().currentUser;
+    final userEmail = user?.email ?? 'Usuario';
+    final userName = _extractUsername(userEmail);
+    
+    // CORRECCIÓN: Usar los métodos corregidos para fechas
+    final userSince = _formatDateFromString(user?.createdAt);
+    final lastAccess = _formatDateFromString(user?.lastSignInAt);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F16),
       appBar: AppBar(
@@ -43,10 +79,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.greenAccent),
-            onPressed: () {
-              // Navegación futura a configuración
-            },
+            icon: const Icon(Icons.logout, color: Colors.greenAccent),
+            onPressed: () => _signOut(context),
+            tooltip: 'Cerrar sesión',
           ),
         ],
       ),
@@ -77,8 +112,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: const CircleAvatar(
                   backgroundColor: Colors.transparent,
-                  backgroundImage:
-                      AssetImage('assets/images/avatar.png'),
+                  backgroundImage: AssetImage('assets/images/avatar.png'),
+                  child: Icon(
+                    Icons.person,
+                    size: 50,
+                    color: Colors.white,
+                  ),
                 ),
               )
                   .animate()
@@ -87,10 +126,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Nombre de usuario
-            const Text(
-              "Survivor_Zero",
-              style: TextStyle(
+            // Nombre de usuario REAL
+            Text(
+              userName,
+              style: const TextStyle(
                 color: Colors.greenAccent,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -99,17 +138,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 6),
 
-            const Text(
-              "Nivel 27 • Cazador de Élite",
-              style: TextStyle(
+            // Email real del usuario
+            Text(
+              userEmail,
+              style: const TextStyle(
                 color: Colors.white70,
-                fontSize: 16,
+                fontSize: 14,
+              ),
+            ).animate().fadeIn(duration: 800.ms),
+
+            const SizedBox(height: 6),
+
+            // Fecha de registro real - CORREGIDO
+            Text(
+              "Miembro desde: $userSince",
+              style: const TextStyle(
+                color: Colors.white60,
+                fontSize: 12,
               ),
             ).animate().fadeIn(duration: 1000.ms),
 
             const SizedBox(height: 24),
 
-            // Estadísticas
+            // Información de la cuenta (datos reales) - CORREGIDO y CON ROL
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF141A22),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  _buildInfoRow('Rol', _userRole ?? 'user'), // 🔹 AGREGAR ESTA LÍNEA
+                  _buildInfoRow('Email verificado', user?.emailConfirmedAt != null ? 'Sí' : 'No'),
+                  _buildInfoRow('Último acceso', lastAccess),
+                  _buildInfoRow('Estado', 'Activo'),
+                ],
+              ),
+            ).animate().fadeIn(duration: 1000.ms).slide(begin: const Offset(0, 0.2)),
+
+            const SizedBox(height: 30),
+
+            // Estadísticas del juego (puedes mantenerlas ficticias o conectarlas a tu base de datos después)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -121,7 +193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 30),
 
-            // Descripción
+            // Descripción (puedes hacerla editable después)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -129,17 +201,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
               ),
-              child: const Text(
-                "Soy un sobreviviente de las ruinas. Me especializo en armas de largo alcance y recolección de suministros. "
-                "He formado parte del escuadrón ‘Last Dawn’ desde el inicio del brote.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  height: 1.5,
-                ),
+              child: Column(
+                children: [
+                  const Text(
+                    "Biografía",
+                    style: TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Soy un sobreviviente de las ruinas. Me especializo en armas de largo alcance y recolección de suministros. "
+                    "He formado parte del escuadrón 'Last Dawn' desde el inicio del brote.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Futura funcionalidad para editar biografía
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.greenAccent,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: const Text('Editar Biografía'),
+                  ),
+                ],
               ),
             ).animate().fadeIn(duration: 1000.ms).slide(begin: const Offset(0, 0.2)),
+
+            const SizedBox(height: 30),
+
+            // Botón de cerrar sesión
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _signOut(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.logout),
+                label: const Text(
+                  'Cerrar Sesión',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ).animate().fadeIn(duration: 1000.ms),
 
             const SizedBox(height: 30),
 
@@ -222,6 +341,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              color: Colors.grey.shade400,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static Widget _statCard(String title, String value) {
     return Column(
       children: [
@@ -248,13 +395,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static String _activityText(int index) {
     switch (index) {
       case 0:
-        return "Completó la misión ‘Rescate en el Búnker’.";
+        return "Completó la misión 'Rescate en el Búnker'.";
       case 1:
-        return "Desbloqueó el arma legendaria ‘Reaper Shotgun’.";
+        return "Desbloqueó el arma legendaria 'Reaper Shotgun'.";
       case 2:
-        return "Formó alianza con el jugador ‘ShadowFox’.";
+        return "Formó alianza con el jugador 'ShadowFox'.";
       default:
         return "Actividad reciente desconocida.";
+    }
+  }
+
+  // --- Métodos auxiliares para datos reales ---
+
+  String _extractUsername(String email) {
+    if (email.contains('@')) {
+      return email.split('@')[0];
+    }
+    return email;
+  }
+
+  // NUEVO MÉTODO: Maneja fechas como String desde Supabase
+  String _formatDateFromString(String? dateString) {
+    if (dateString == null) return 'No disponible';
+    
+    try {
+      final date = DateTime.parse(dateString);
+      return _formatDate(date);
+    } catch (e) {
+      return 'Fecha inválida';
+    }
+  }
+
+  // MÉTODO CORREGIDO: Solo acepta DateTime
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays < 1) {
+      return 'Hoy';
+    } else if (difference.inDays < 2) {
+      return 'Ayer';
+    } else if (difference.inDays < 30) {
+      return 'Hace ${difference.inDays} días';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return 'Hace $months ${months == 1 ? 'mes' : 'meses'}';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
     }
   }
 }

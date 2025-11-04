@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../services/supabase_service.dart';
+import '../../../routes/app_routes.dart';
 import '../home/home_content.dart';
 import '../posts/posts_content.dart';
 import '../categories/categories_content.dart';
@@ -38,6 +40,21 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await SupabaseService().signOut();
+      // AuthWrapper detectará automáticamente el cierre de sesión
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al cerrar sesión'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,6 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 20,
                 ),
               ),
+              actions: _selectedIndex == 0 
+                  ? [
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        onPressed: () => _signOut(context),
+                        tooltip: 'Cerrar sesión',
+                        color: Colors.greenAccent,
+                      ),
+                    ]
+                  : null,
             )
           : null,
       body: AnimatedSwitcher(

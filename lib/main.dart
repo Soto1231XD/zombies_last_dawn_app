@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'routes/app_routes.dart';
+import 'services/supabase_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar Supabase ANTES de runApp
+  try {
+    await SupabaseService().initialize();
+    print('✅ Supabase inicializado correctamente');
+  } catch (e) {
+    print('❌ Error inicializando Supabase: $e');
+    // Puedes decidir si quieres continuar o no
+  }
+  
   runApp(const LastDawnApp());
 }
 
@@ -23,7 +35,7 @@ class LastDawnApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Poppins',
       ),
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.splash,
       routes: AppRoutes.routes,
     );
   }

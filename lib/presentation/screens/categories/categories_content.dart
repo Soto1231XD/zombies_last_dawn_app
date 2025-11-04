@@ -1,49 +1,119 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../services/category_service.dart';
+import '../../../core/models/category_model.dart';
 
-class CategoriesContent extends StatelessWidget {
+class CategoriesContent extends StatefulWidget {
   const CategoriesContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final categories = [
-      {'title': 'Armas', 'icon': Icons.security, 'color': Colors.redAccent},
-      {
-        'title': 'Zombies',
-        'icon': Icons.bug_report,
-        'color': Colors.greenAccent,
-      },
-      {'title': 'Mapas', 'icon': Icons.map, 'color': Colors.lightBlueAccent},
-      {'title': 'Misiones', 'icon': Icons.flag, 'color': Colors.orangeAccent},
-      {
-        'title': 'Bugs',
-        'icon': Icons.warning_amber_rounded,
-        'color': Colors.yellowAccent,
-      },
-      {'title': 'Guías', 'icon': Icons.menu_book, 'color': Colors.purpleAccent},
-    ];
+  State<CategoriesContent> createState() => _CategoriesContentState();
+}
 
+class _CategoriesContentState extends State<CategoriesContent> {
+  final CategoryService _categoryService = CategoryService();
+  late Future<List<Category>> _categoriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  void _loadCategories() {
+    setState(() {
+      _categoriesFuture = _categoryService.getCategories();
+    });
+  }
+
+  void _refreshCategories() {
+    if (mounted) {
+      _loadCategories();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF0B0F16),
       padding: const EdgeInsets.all(16.0),
-      child: GridView.builder(
-        physics: const BouncingScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 1,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return _categoryCard(
-            title: category['title'] as String,
-            icon: category['icon'] as IconData,
-            color: category['color'] as Color,
-            delay: index * 150,
-            onTap: () {
-              // TODO: acción al seleccionar categoría
+      child: FutureBuilder<List<Category>>(
+        future: _categoriesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: Colors.greenAccent,
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
+                  SizedBox(height: 16),
+                  Text(
+                    'Error al cargar categorías',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Verifica tu conexión a internet',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _refreshCategories,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.greenAccent,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final categories = snapshot.data!;
+
+          if (categories.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.category_outlined, color: Colors.grey, size: 64),
+                  SizedBox(height: 16),
+                  Text(
+                    'No hay categorías disponibles',
+                    style: TextStyle(color: Colors.grey, fontSize: 18),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return GridView.builder(
+            physics: const BouncingScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 1,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return _categoryCard(
+                category: category,
+                delay: index * 150,
+                onTap: () {
+                  _showCategoryPosts(context, category);
+                },
+              );
             },
           );
         },
@@ -51,56 +121,93 @@ class CategoriesContent extends StatelessWidget {
     );
   }
 
-  static Widget _categoryCard({
-    required String title,
-    required IconData icon,
-    required Color color,
+  void _showCategoryPosts(BuildContext context, Category category) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Navegando a posts de ${category.name}'),
+        backgroundColor: category.color,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _categoryCard({
+    required Category category,
     required int delay,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child:
-          Container(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              category.color.withOpacity(0.15),
+              Colors.black.withOpacity(0.4),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: category.color.withOpacity(0.4), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: category.color.withOpacity(0.2),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Mostrar imagen si existe, sino mostrar icono
+            if (category.imageUrl != null && category.imageUrl!.isNotEmpty)
+              Container(
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      color.withOpacity(0.15),
-                      Colors.black.withOpacity(0.4),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: NetworkImage(category.imageUrl!),
+                    fit: BoxFit.cover,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: color.withOpacity(0.4), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.2),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, color: color, size: 42),
-                    const SizedBox(height: 12),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
                 ),
               )
-              .animate(delay: (delay).ms)
-              .fadeIn(duration: 600.ms)
-              .scale(begin: const Offset(0.8, 0.8))
-              .slide(begin: const Offset(0, 0.2)),
+            else
+              Icon(category.icon, color: category.color, size: 42),
+            const SizedBox(height: 12),
+            Text(
+              category.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            if (category.description != null) ...[
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  category.description!,
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
+        ),
+      )
+          .animate(delay: (delay).ms)
+          .fadeIn(duration: 600.ms)
+          .scale(begin: const Offset(0.8, 0.8))
+          .slide(begin: const Offset(0, 0.2)),
     );
   }
 }
