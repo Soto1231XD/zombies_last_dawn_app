@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../routes/app_routes.dart';
 import '../../../services/supabase_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -64,7 +63,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+         const SnackBar(
           content: Text('Error inesperado al registrar'),
           backgroundColor: Colors.red,
         ),
@@ -236,7 +235,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onTap: _isLoading
                           ? null
                           : () {
-                              Navigator.pushNamed(context, AppRoutes.login);
+                              Navigator.pop(context);
                             },
                       child: Text(
                         "Inicia sesión",
