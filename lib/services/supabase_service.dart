@@ -5,8 +5,8 @@ class SupabaseService {
   factory SupabaseService() => _instance;
   SupabaseService._internal();
 
-  // TUS CREDENCIALES DIRECTAS AQUÍ - FUNCIONA EN DESARROLLO
-  static const String supabaseUrl = 'https://jhgaivbhkogltmibglbi.supabase.co'; // ← PON TU URL REAL
+  //CREDENCIALES 
+  static const String supabaseUrl = 'https://jhgaivbhkogltmibglbi.supabase.co';
   static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoZ2FpdmJoa29nbHRtaWJnbGJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5OTQzNzQsImV4cCI6MjA3NzU3MDM3NH0.3o_xYTyBunllhCFvd8PlCyYBD-WRGVFJXloRRWybIJs'; // ← PON TU CLAVE REAL
 
   Future<void> initialize() async {
@@ -25,7 +25,7 @@ class SupabaseService {
       password: password,
     );
 
-    // Crear perfil automáticamente después del registro
+    // Crear perfil
     if (authResponse.user != null) {
       await createUserProfile(authResponse.user!);
     }
@@ -82,7 +82,7 @@ class SupabaseService {
     return role == 'admin';
   }
 
-  // Métodos para publicaciones
+  //  publicaciones
   Future<List<Map<String, dynamic>>> getPosts() async {
     final response = await client
         .from('posts')
@@ -154,8 +154,8 @@ class SupabaseService {
       final totalAdmins = profiles.where((p) => p['role'] == 'admin').length;
       final totalPosts = posts.length;
       
-      // Para usuarios activos hoy, usamos una aproximación simple
-      final activeToday = totalUsers; // Por ahora, asumimos todos activos
+  
+      final activeToday = totalUsers; 
       
       return {
         'totalUsers': totalUsers,
@@ -174,7 +174,7 @@ class SupabaseService {
     }
   }
 
-  // Obtener todos los usuarios con información completa
+  // información detallada de usuarios
   Future<List<Map<String, dynamic>>> getAllUsersDetailed() async {
     if (!await isAdmin()) {
       throw Exception('No tienes permisos de administrador');
@@ -188,7 +188,7 @@ class SupabaseService {
     return response;
   }
 
-  // Obtener posts con información del autor
+  // Obtener posts 
   Future<List<Map<String, dynamic>>> getPostsWithAuthors() async {
     final response = await client
         .from('posts')

@@ -31,10 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
       
-      print('✅ Login exitoso: ${response.user?.email}');
+      print('Login exitoso: ${response.user?.email}');
       
-      // NO navegamos manualmente - AuthWrapper manejará la redirección
-      // El listener en AuthWrapper detectará el cambio automáticamente
       
     } on AuthException catch (error) {
       // Verificar si el widget todavía está montado antes de mostrar snackbar

@@ -6,18 +6,18 @@ class CategoryService {
 
   Future<List<Category>> getCategories() async {
     try {
-      print('🟡 CONECTANDO A SUPABASE PARA OBTENER CATEGORÍAS...');
+      print(' CONECTANDO A SUPABASE PARA OBTENER CATEGORÍAS...');
       
       final response = await _supabase
           .from('categories')
           .select()
           .order('created_at', ascending: true);
       
-      print('🟢 RESPUESTA DE SUPABASE: ${response.length} elementos');
-      print('🔵 DATOS CRUDOS: $response');
+      print(' RESPUESTA DE SUPABASE: ${response.length} elementos');
+      print(' DATOS CRUDOS: $response');
       
       if (response.isEmpty) {
-        print('🟡 NO SE ENCONTRARON CATEGORÍAS EN LA BASE DE DATOS');
+        print(' NO SE ENCONTRARON CATEGORÍAS EN LA BASE DE DATOS');
         return [];
       }
       
@@ -25,16 +25,16 @@ class CategoryService {
         try {
           return Category.fromJson(json);
         } catch (e) {
-          print('🔴 ERROR PARSEANDO CATEGORÍA: $e - JSON: $json');
+          print(' ERROR PARSEANDO CATEGORÍA: $e - JSON: $json');
           rethrow;
         }
       }).toList();
       
-      print('🟣 CATEGORÍAS PARSEADAS EXITOSAMENTE: ${categories.length}');
+      print(' CATEGORÍAS PARSEADAS EXITOSAMENTE: ${categories.length}');
       return categories;
     } catch (e) {
-      print('🔴 ERROR CRÍTICO EN CategoryService.getCategories(): $e');
-      print('🔴 Stack trace: ${e.toString()}');
+      print(' ERROR CRÍTICO EN CategoryService.getCategories(): $e');
+      print(' Stack trace: ${e.toString()}');
       rethrow;
     }
   }

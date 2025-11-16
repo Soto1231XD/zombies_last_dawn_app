@@ -48,7 +48,7 @@ class PostsScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Vista cuando no hay publicaciones
+  // Vista cuando no hay publicaciones
   static Widget _buildEmptyState() {
     return Center(
       child: Column(
