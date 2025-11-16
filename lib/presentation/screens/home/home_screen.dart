@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../services/supabase_service.dart';
-import '../../../routes/app_routes.dart';
 import '../home/home_content.dart';
-import '../posts/posts_content.dart';
+import '../posts/posts_screen.dart';
 import '../categories/categories_content.dart';
 import '../profile/profile_screen.dart';
 
@@ -20,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Lista de pantallas
   final List<Widget> _screens = const [
     HomeContent(),      
-    PostsContent(),     
+    PostsScreen(),    
     CategoriesContent(),
     ProfileScreen(),    
   ];
@@ -122,16 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      // 🔹 Botón flotante solo en Publicaciones
-      floatingActionButton: _selectedIndex == 1
-          ? FloatingActionButton(
-              onPressed: () {
-                // Acción para crear nueva publicación
-              },
-              backgroundColor: Colors.greenAccent,
-              child: const Icon(Icons.add, color: Colors.black),
-            )
-          : null,
     );
   }
 }

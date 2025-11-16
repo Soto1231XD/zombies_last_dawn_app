@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/widgets/post_card.dart';
-import '../../../data/dummy_data/sample_posts.dart';
+import '../../../core/models/post_model.dart'; // Importar desde core/models
+
+// Temporalmente comentamos samplePosts hasta que lo migres
+// import '../../../data/dummy_data/sample_posts.dart';
 
 class PostsContent extends StatelessWidget {
-  const PostsContent({super.key});
+  final List<PostModel> posts; // Recibir posts como parámetro
+
+  const PostsContent({super.key, required this.posts});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF0B0F16),
-      child: samplePosts.isEmpty
+      child: posts.isEmpty
           ? _buildEmptyState()
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               physics: const BouncingScrollPhysics(),
-              itemCount: samplePosts.length,
+              itemCount: posts.length,
               itemBuilder: (context, index) {
-                final post = samplePosts[index];
+                final post = posts[index];
                 return PostCard(post: post)
                     .animate()
                     .fadeIn(duration: 600.ms, delay: (index * 100).ms)

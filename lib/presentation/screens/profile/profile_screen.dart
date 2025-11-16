@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../services/supabase_service.dart';
-import '../../../routes/app_routes.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
