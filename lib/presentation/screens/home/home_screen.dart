@@ -4,6 +4,7 @@ import '../home/home_content.dart';
 import '../posts/posts_screen.dart';
 import '../categories/categories_content.dart';
 import '../profile/profile_screen.dart';
+import '../../../routes/app_routes.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Lista de pantallas
   final List<Widget> _screens = const [
     HomeContent(),      
     PostsScreen(),    
@@ -23,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
     ProfileScreen(),    
   ];
 
-  // Títulos según la pestaña
   final List<String> _titles = [
     'Inicio',
     'Publicaciones',
@@ -31,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
     '', 
   ];
 
-  // Cambio de índice al presionar un botón
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -41,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _signOut(BuildContext context) async {
     try {
       await SupabaseService().signOut();
-      // AuthWrapper detectará automáticamente el cierre de sesión
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,10 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _navigateToChat(BuildContext context) {
+    Navigator.pushNamed(context, AppRoutes.chat);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 🔹 AppBar solo para Inicio, Publicaciones y Categorías
       appBar: _selectedIndex != 3
           ? AppBar(
               backgroundColor: Colors.transparent,
@@ -70,16 +70,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 20,
                 ),
               ),
-              actions: _selectedIndex == 0 
-                  ? [
-                      IconButton(
-                        icon: const Icon(Icons.logout),
-                        onPressed: () => _signOut(context),
-                        tooltip: 'Cerrar sesión',
-                        color: Colors.greenAccent,
-                      ),
-                    ]
-                  : null,
+              actions: [
+                // Botón del chat - visible en todas las pantallas excepto Perfil
+                IconButton(
+                  icon: const Icon(Icons.chat),
+                  onPressed: () => _navigateToChat(context),
+                  tooltip: 'Asistente IA',
+                  color: Colors.greenAccent,
+                ),
+                // Botón de logout solo en Inicio
+                if (_selectedIndex == 0) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () => _signOut(context),
+                    tooltip: 'Cerrar sesión',
+                    color: Colors.greenAccent,
+                  ),
+                ],
+              ],
             )
           : null,
       body: AnimatedSwitcher(

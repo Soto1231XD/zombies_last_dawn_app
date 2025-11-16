@@ -42,6 +42,7 @@ dependencies:
   shimmer: ^3.0.0
   supabase_flutter: ^2.0.0
   get: ^4.6.5 
+  http: ^1.1.0
 
 
 dev_dependencies:
