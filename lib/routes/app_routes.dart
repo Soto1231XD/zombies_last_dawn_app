@@ -7,7 +7,8 @@ import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/categories/categories_screen.dart';
 import '../presentation/screens/splash_screen.dart'; // Agregar
 import '../presentation/screens/auth_wrapper.dart'; // Agregar
-
+import '../presentation/screens/posts/create_post_screen.dart';
+import '../presentation/screens/chat/chat_screen.dart';
 
 class AppRoutes {
   static const String splash = '/'; // Ruta inicial
@@ -18,7 +19,8 @@ class AppRoutes {
   static const String posts = '/posts';
   static const String profile = '/profile';
   static const String categories = '/categories';
-  
+  static const String createPost = '/create-post';
+  static const String chat = '/chat';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashScreen(),
@@ -29,5 +31,7 @@ class AppRoutes {
     posts: (context) => const PostsScreen(),
     profile: (context) => const ProfileScreen(),
     categories: (context) => const CategoriesScreen(),
+    createPost: (context) => const CreatePostScreen(),
+    chat: (context) => const ChatScreen(),
   };
 }

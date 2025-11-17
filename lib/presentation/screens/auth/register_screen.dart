@@ -17,16 +17,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _signUp() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    // Verificar que las contraseñas coincidan
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Las contraseñas no coinciden'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xEF4444),
         ),
       );
       return;
@@ -40,32 +37,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await SupabaseService().signUp(
         _emailController.text.trim(),
         _passwordController.text,
-        
       );
-      
-      // Mostrar mensaje de éxito
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Registro exitoso! Revisa tu email para confirmar.'),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF22D3EE),
         ),
       );
-      
-      // Volver al login después de registro exitoso
+
       Navigator.pop(context);
-      
     } on AuthException catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.message),
-          backgroundColor: Colors.red,
+          backgroundColor: const Color(0xEF4444),
         ),
       );
-    } catch (error) {
+    } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(
+        const SnackBar(
           content: Text('Error inesperado al registrar'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xEF4444),
         ),
       );
     } finally {
@@ -88,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F16),
+      backgroundColor: const Color(0xFF0B1220), // bg principal
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -98,10 +91,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Título de la pantalla
-                Text(
+                const Text(
                   "Registro",
                   style: TextStyle(
-                    color: Colors.greenAccent,
+                    color: Color(0xFF22D3EE), // accent
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                   ),
@@ -112,13 +105,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Color(0xFFE5E7EB)), // fg
                   decoration: InputDecoration(
                     hintText: "Correo electrónico",
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)), // muted
                     filled: true,
-                    fillColor: const Color(0xFF141A22),
-                    prefixIcon: const Icon(Icons.email, color: Colors.greenAccent),
+                    fillColor: const Color(0xFF121A2B), // card
+                    prefixIcon: const Icon(Icons.email, color: Color(0xFF22D3EE)), // accent
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -140,13 +133,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Color(0xFFE5E7EB)),
                   decoration: InputDecoration(
                     hintText: "Contraseña",
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                     filled: true,
-                    fillColor: const Color(0xFF141A22),
-                    prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
+                    fillColor: const Color(0xFF121A2B),
+                    prefixIcon: const Icon(Icons.lock, color: Color(0xFF22D3EE)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -168,13 +161,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Color(0xFFE5E7EB)),
                   decoration: InputDecoration(
                     hintText: "Confirmar contraseña",
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                     filled: true,
-                    fillColor: const Color(0xFF141A22),
-                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.greenAccent),
+                    fillColor: const Color(0xFF121A2B),
+                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF22D3EE)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -196,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.greenAccent,
+                      backgroundColor: const Color(0xFF22D3EE), // accent
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -206,45 +199,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.black,
+                              color: Color(0xFF0B1220), // bg del spinner
                               strokeWidth: 2,
                             ),
                           )
                         : const Text(
                             "Registrarse",
                             style: TextStyle(
-                              color: Colors.black87,
+                              color: Color(0xFF0B1220), // bg como fg en botón
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
                           ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // Enlace a login
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: const [
                     Text(
                       "¿Ya tienes cuenta? ",
-                      style: TextStyle(color: Colors.grey.shade400),
+                      style: TextStyle(color: Color(0xFF94A3B8)), // muted
                     ),
-                    GestureDetector(
-                      onTap: _isLoading
-                          ? null
-                          : () {
-                              Navigator.pop(context);
-                            },
-                      child: Text(
-                        "Inicia sesión",
-                        style: TextStyle(
-                          color: _isLoading
-                              ? Colors.grey.shade600
-                              : Colors.greenAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    Text(
+                      "Inicia sesión",
+                      style: TextStyle(
+                        color: Color(0xFF22D3EE), // accent
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],

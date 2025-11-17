@@ -17,9 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _signIn() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -30,32 +28,24 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
       print('Login exitoso: ${response.user?.email}');
-      
-      
     } on AuthException catch (error) {
-      // Verificar si el widget todavía está montado antes de mostrar snackbar
       if (!mounted) return;
-      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error.message),
-          backgroundColor: Colors.red,
+          backgroundColor: const Color(0xEF4444), // rojo destructivo de paleta
         ),
       );
-    } catch (error) {
-      // Verificar si el widget todavía está montado antes de mostrar snackbar
+    } catch (_) {
       if (!mounted) return;
-      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error inesperado al iniciar sesión'),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xEF4444),
         ),
       );
     } finally {
-      // Solo actualizar el estado si el widget todavía está montado
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -74,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F16),
+      backgroundColor: const Color(0xFF0B1220), // bg principal
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -86,8 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Logo o título
                 Text(
                   "Last Dawn",
-                  style: TextStyle(
-                    color: Colors.greenAccent,
+                  style: const TextStyle(
+                    color: Color(0xFF22D3EE), // accent
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                   ),
@@ -98,13 +88,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Color(0xFFE5E7EB)), // fg
                   decoration: InputDecoration(
                     hintText: "Correo electrónico",
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)), // muted
                     filled: true,
-                    fillColor: const Color(0xFF141A22),
-                    prefixIcon: const Icon(Icons.email, color: Colors.greenAccent),
+                    fillColor: const Color(0xFF121A2B), // card
+                    prefixIcon: const Icon(Icons.email, color: Color(0xFF22D3EE)), // accent
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -126,13 +116,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Color(0xFFE5E7EB)),
                   decoration: InputDecoration(
                     hintText: "Contraseña",
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                     filled: true,
-                    fillColor: const Color(0xFF141A22),
-                    prefixIcon: const Icon(Icons.lock, color: Colors.greenAccent),
+                    fillColor: const Color(0xFF121A2B),
+                    prefixIcon: const Icon(Icons.lock, color: Color(0xFF22D3EE)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -157,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.greenAccent,
+                      backgroundColor: const Color(0xFF22D3EE), // accent
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -167,30 +157,29 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.black,
+                              color: Color(0xFF0B1220), // bg del spinner
                               strokeWidth: 2,
                             ),
                           )
                         : const Text(
                             "Iniciar sesión",
                             style: TextStyle(
-                              color: Colors.black87,
+                              color: Color(0xFF0B1220), // bg como fg en botón
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
                           ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
                 // Enlace de registro
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "¿No tienes cuenta? ",
-                      style: TextStyle(color: Colors.grey.shade400),
+                      style: TextStyle(color: Color(0xFF94A3B8)), // muted
                     ),
                     GestureDetector(
                       onTap: _isLoading
@@ -198,12 +187,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           : () {
                               Navigator.pushNamed(context, AppRoutes.register);
                             },
-                      child: Text(
+                      child: const Text(
                         "Regístrate",
                         style: TextStyle(
-                          color: _isLoading
-                              ? Colors.grey.shade600
-                              : Colors.greenAccent,
+                          color: Color(0xFF22D3EE), // accent
                           fontWeight: FontWeight.bold,
                         ),
                       ),
