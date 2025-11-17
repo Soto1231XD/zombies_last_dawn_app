@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../services/supabase_service.dart';
+import '../../../services/image_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,6 +14,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
   String? _userRole;
+  String? _avatarUrl;
 
   // ---- PALETA -----
   final Color bg = const Color(0xFF0B1220);
@@ -37,15 +39,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserData() async {
     try {
       _userRole = await SupabaseService().getUserRole();
+      final profile = await SupabaseService().getUserProfile();
+
+      if (profile != null && profile['avatar_url'] != null) {
+        final avatarUrl = profile['avatar_url'] as String;
+        // Agregar un timestamp para evitar el cache
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final cachedAvatarUrl = '$avatarUrl?t=$timestamp';
+
+        if (mounted) {
+          setState(() {
+            _avatarUrl = cachedAvatarUrl;
+          });
+        }
+      } else {
+        // Si no hay avatar, asegurarse de que _avatarUrl sea null
+        if (mounted) {
+          setState(() {
+            _avatarUrl = null;
+          });
+        }
+      }
     } catch (e) {
       _userRole = 'user';
     }
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => isLoading = false);
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _updateProfilePicture() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Tomar foto'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _handleImageSelection(true);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Elegir de la galería'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _handleImageSelection(false);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleImageSelection(bool fromCamera) async {
+    try {
+      final ImageService imageService = ImageService();
+      final String? imageUrl = fromCamera
+          ? await imageService.takeAndUploadProfilePicture()
+          : await imageService.selectAndUploadProfilePicture();
+
+      if (imageUrl != null && mounted) {
+        // Forzar una recarga completa de los datos del usuario
+        await Future.delayed(const Duration(milliseconds: 500));
+        await _loadUserData();
+
+        // También podemos forzar un rebuild inmediato con la nueva URL
+        setState(() {
+          _avatarUrl = imageUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Foto de perfil actualizada correctamente'),
+            backgroundColor: accent,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: destructive,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _signOut(BuildContext context) async {
@@ -79,10 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         title: Text(
           "Perfil del Jugador",
-          style: TextStyle(
-            color: accent,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: accent, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -96,30 +182,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar
+            // Avatar con botón de cámara
             Center(
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [accent, bg],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 2,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [accent, bg],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: accent.withOpacity(0.3),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: AssetImage('assets/images/avatar.png'),
-                ),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: _avatarUrl != null
+                          ? NetworkImage(_avatarUrl!)
+                          : const AssetImage('assets/images/avatar.png')
+                                as ImageProvider,
+                      onBackgroundImageError: (exception, stackTrace) {
+                        // Forzar recarga si hay error
+                        if (mounted) {
+                          setState(() {
+                            _avatarUrl = null;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: bg, width: 3),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.camera_alt,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                        onPressed: _updateProfilePicture,
+                      ),
+                    ),
+                  ),
+                ],
               ).animate().scale(duration: 800.ms).fadeIn(duration: 600.ms),
             ),
             const SizedBox(height: 16),
@@ -137,42 +259,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             Text(
               userEmail,
-              style: TextStyle(
-                color: mutedFg,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: mutedFg, fontSize: 14),
             ).animate().fadeIn(duration: 800.ms),
 
             const SizedBox(height: 6),
 
             Text(
               "Miembro desde: $userSince",
-              style: TextStyle(
-                color: mutedFg,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: mutedFg, fontSize: 12),
             ).animate().fadeIn(duration: 1000.ms),
 
             const SizedBox(height: 24),
 
             // INFO CARD
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: secondary,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: border),
-              ),
-              child: Column(
-                children: [
-                  _buildInfoRow('Rol', _userRole ?? 'user'),
-                  _buildInfoRow('Email verificado', user?.emailConfirmedAt != null ? 'Sí' : 'No'),
-                  _buildInfoRow('Último acceso', lastAccess),
-                  _buildInfoRow('Estado', 'Activo'),
-                ],
-              ),
-            )
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: secondary,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: border),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildInfoRow('Rol', _userRole ?? 'user'),
+                      _buildInfoRow(
+                        'Email verificado',
+                        user?.emailConfirmedAt != null ? 'Sí' : 'No',
+                      ),
+                      _buildInfoRow('Último acceso', lastAccess),
+                      _buildInfoRow('Estado', 'Activo'),
+                    ],
+                  ),
+                )
                 .animate()
                 .fadeIn(duration: 1000.ms)
                 .slide(begin: const Offset(0, 0.2)),
@@ -214,11 +333,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     "Soy un sobreviviente de las ruinas. Me especializo en armas de largo alcance y recolección de suministros. "
                     "He formado parte del escuadrón 'Last Dawn' desde el inicio del brote.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: mutedFg,
-                      fontSize: 15,
-                      height: 1.5,
-                    ),
+                    style: TextStyle(color: mutedFg, fontSize: 15, height: 1.5),
                   ),
                   const SizedBox(height: 10),
                   ElevatedButton(
@@ -322,10 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Expanded(
                 child: Text(
                   _activityText(index),
-                  style: TextStyle(
-                    color: mutedFg,
-                    fontSize: 15,
-                  ),
+                  style: TextStyle(color: mutedFg, fontSize: 15),
                 ),
               ),
             ],
@@ -351,10 +463,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                color: fg,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: fg, fontSize: 14),
               textAlign: TextAlign.right,
             ),
           ),
@@ -375,13 +484,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          title,
-          style: TextStyle(
-            color: mutedFg,
-            fontSize: 14,
-          ),
-        ),
+        Text(title, style: TextStyle(color: mutedFg, fontSize: 14)),
       ],
     );
   }

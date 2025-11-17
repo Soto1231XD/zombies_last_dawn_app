@@ -197,4 +197,14 @@ class SupabaseService {
     
     return response;
   }
+
+  Future<void> updateProfileAvatar(String avatarUrl) async {
+  final user = currentUser;
+  if (user == null) throw Exception('Usuario no autenticado');
+
+  await client
+      .from('profiles')
+      .update({'avatar_url': avatarUrl})
+      .eq('id', user.id);
+}
 }

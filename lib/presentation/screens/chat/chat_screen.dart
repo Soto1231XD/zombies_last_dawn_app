@@ -16,9 +16,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService(
-    baseUrl: 'http://10.0.2.2:8000', // Para Android emulator
+    // baseUrl: 'http://10.0.2.2:8000', // Para Android emulator
     // baseUrl: 'http://localhost:8000', // Para iOS simulator
-    // baseUrl: 'http://192.168.1.XXX:8000', // Para dispositivo físico
+    baseUrl: 'http://192.168.0.104:8000', // Para dispositivo físico
   );
 
   bool _isLoading = false;
@@ -43,7 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
     
     if (!connected) {
       _addMessage(
-        '⚠️ No puedo conectarme con el servidor. Asegúrate de que tu RAG_API esté ejecutándose en el puerto 8000.',
+        ' No puedo conectarme con el servidor. Asegúrate de que tu RAG_API esté ejecutándose en el puerto 8000.',
         isUser: false,
         type: MessageType.error,
       );
@@ -129,7 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _messages.removeWhere((msg) => msg.id == loadingMessage.id);
         _addMessage(
-          '❌ Error al conectar con el asistente: $e\n\nAsegúrate de que:\n• Tu RAG_API esté ejecutándose\n• La URL sea correcta\n• El puerto 8000 esté disponible',
+          ' Error al conectar con el asistente: $e\n\nAsegúrate de que:\n• Tu RAG_API esté ejecutándose\n• La URL sea correcta\n• El puerto 8000 esté disponible',
           isUser: false,
           type: MessageType.error,
         );
