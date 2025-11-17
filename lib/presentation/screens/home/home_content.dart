@@ -18,8 +18,8 @@ class HomeContent extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF22D3EE), // accent azul
-                  Color(0xFF0B1220), // fondo base
+                  Color(0xFF22D3EE),
+                  Color(0xFF0B1220),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -52,15 +52,30 @@ class HomeContent extends StatelessWidget {
 
           // DESCRIPCIÓN PRINCIPAL
           const Text(
-            'Last Dawn es un juego 2D de supervivencia en vista cenital donde deberás enfrentar hordas interminables de zombies, completar misiones aleatorias y mejorar tus habilidades. '
-            'Cada partida es distinta: rescata sobrevivientes, defiende zonas y busca recursos antes de que llegue el amanecer.',
+            'Last Dawn es un juego 2D de supervivencia en vista cenital donde deberás enfrentar hordas interminables de zombies, completar misiones aleatorias y mejorar tus habilidades.',
             textAlign: TextAlign.justify,
             style: TextStyle(
-              color: Color(0xFFA8B3C7),  // muted-foreground
+              color: Color(0xFFA8B3C7),
               fontSize: 16,
               height: 1.5,
             ),
           ).animate().fadeIn(duration: 800.ms).slide(begin: const Offset(0, 0.1)),
+
+          const SizedBox(height: 12),
+
+          // SUBSECCIONES SOBRE EL JUEGO
+          _gameSubSection(
+            title: 'Historia del mundo',
+            content: 'El mundo ha caído en el caos tras un extraño fenómeno que hizo surgir hordas de zombies. Los sobrevivientes deben organizarse y luchar por su existencia.',
+          ),
+          _gameSubSection(
+            title: 'Objetivos del jugador',
+            content: 'Sobrevive, rescata a los sobrevivientes, defiende zonas y consigue recursos antes del amanecer.',
+          ),
+          _gameSubSection(
+            title: 'Consejos',
+            content: 'Explora cuidadosamente, combina armas y habilidades, y planifica tus movimientos para enfrentar hordas más difíciles.',
+          ),
 
           const SizedBox(height: 30),
 
@@ -85,26 +100,22 @@ class HomeContent extends StatelessWidget {
               _featureCard(
                 icon: Icons.bolt,
                 title: 'Acción dinámica',
-                description:
-                    'Combina estrategia y reflejos para sobrevivir a oleadas intensas.',
+                description: 'Combina estrategia y reflejos para sobrevivir a oleadas intensas.',
               ),
               _featureCard(
                 icon: Icons.shuffle,
                 title: 'Misiones aleatorias',
-                description:
-                    'Cada partida presenta nuevos objetivos y desafíos únicos.',
+                description: 'Cada partida presenta nuevos objetivos y desafíos únicos.',
               ),
               _featureCard(
                 icon: Icons.auto_fix_high,
                 title: 'Personalización',
-                description:
-                    'Elige tus armas y mejora tu estilo de combate.',
+                description: 'Elige tus armas y mejora tu estilo de combate.',
               ),
               _featureCard(
                 icon: Icons.people,
                 title: 'Comunidad activa',
-                description:
-                    'Comparte experiencias, consejos y estrategias en el foro.',
+                description: 'Comparte experiencias, consejos y estrategias en el foro.',
               ),
             ],
           ).animate().fadeIn(duration: 1000.ms).scale(begin: const Offset(0.9, 0.9)),
@@ -131,14 +142,12 @@ class HomeContent extends StatelessWidget {
               _characterCard(
                 name: 'Sobreviviente',
                 imagePath: 'assets/images/survivor.png',
-                description:
-                    'Valiente y ágil, especialista en combate cuerpo a cuerpo.',
+                description: 'Valiente y ágil, especialista en combate cuerpo a cuerpo.',
               ),
               _characterCard(
                 name: 'Curandero',
                 imagePath: 'assets/images/curandero.png',
-                description:
-                    'Especialista en curar y apoyar al equipo durante las batallas.',
+                description: 'Especialista en curar y apoyar al equipo durante las batallas.',
               ),
             ],
           ).animate().fadeIn(duration: 1000.ms).scale(begin: const Offset(0.9, 0.9)),
@@ -170,11 +179,70 @@ class HomeContent extends StatelessWidget {
               _weaponCard(
                 name: 'Rifle de francotirador',
                 imagePath: 'assets/images/sniper.png',
-                description:
-                    'Precisión a larga distancia, perfecto para francotiradores.',
+                description: 'Precisión a larga distancia, perfecto para francotiradores.',
               ),
             ],
           ).animate().fadeIn(duration: 1000.ms).scale(begin: const Offset(0.9, 0.9)),
+
+          const SizedBox(height: 40),
+
+          // ----- ENEMIGOS -----
+          const Text(
+            'Enemigos',
+            style: TextStyle(
+              color: Color(0xFF22D3EE),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ).animate().fadeIn(duration: 600.ms),
+
+          const SizedBox(height: 16),
+
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            alignment: WrapAlignment.center,
+            children: [
+              _enemyCard(
+                name: 'Zombie común',
+                imagePath: 'assets/images/zombie-normal.png',
+                description: 'Lento pero en gran número, peligroso en grupo.',
+              ),
+              _enemyCard(
+                name: 'Zombie corredor',
+                imagePath: 'assets/images/sprinter.png',
+                description: 'Rápido y agresivo, difícil de esquivar.',
+              ),
+              _enemyCard(
+                name: 'Tanke',
+                imagePath: 'assets/images/Tank.png',
+                description: 'Fuerte, resistente, pero lento.',
+              ),
+            ],
+          ).animate().fadeIn(duration: 1000.ms).scale(begin: const Offset(0.9, 0.9)),
+
+          const SizedBox(height: 40),
+
+          // ----- NUEVAS ACTUALIZACIONES -----
+          const Text(
+            'Últimas actualizaciones',
+            style: TextStyle(
+              color: Color(0xFF22D3EE),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ).animate().fadeIn(duration: 600.ms),
+
+          const SizedBox(height: 16),
+
+          _updateCard(
+            title: 'Versión 1.2',
+            description: 'Se añadieron nuevas misiones, armas y enemigos especiales.',
+          ),
+          _updateCard(
+            title: 'Versión 1.3',
+            description: 'Mejoras en la IA enemiga y corrección de bugs.',
+          ),
 
           const SizedBox(height: 40),
 
@@ -193,6 +261,32 @@ class HomeContent extends StatelessWidget {
     );
   }
 
+  // --- SUBSECCIONES SOBRE EL JUEGO ---
+  Widget _gameSubSection({required String title, required String content}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF22D3EE),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          content,
+          style: const TextStyle(
+            color: Color(0xFFA8B3C7),
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+      ],
+    ).animate().fadeIn(duration: 800.ms).slide(begin: const Offset(0, 0.1));
+  }
+
   // --- CARD GENÉRICA DE FEATURE ---
   Widget _featureCard({
     required IconData icon,
@@ -203,7 +297,7 @@ class HomeContent extends StatelessWidget {
       width: 170,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF121A2B), // card
+        color: const Color(0xFF121A2B),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white12),
         boxShadow: [
@@ -217,7 +311,7 @@ class HomeContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Color(0xFF22D3EE), size: 38),
+          Icon(icon, color: const Color(0xFF22D3EE), size: 38),
           const SizedBox(height: 10),
           Text(
             title,
@@ -319,5 +413,79 @@ class HomeContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // --- CARD DE ENEMIGO ---
+  Widget _enemyCard({
+    required String name,
+    required String? imagePath,
+    required String description,
+  }) {
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121A2B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        children: [
+          Image.asset(imagePath!, height: 80),
+          const SizedBox(height: 10),
+          Text(
+            name,
+            style: const TextStyle(
+              color: Color(0xFF22D3EE),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFFA8B3C7),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- CARD DE ACTUALIZACIÓN ---
+  Widget _updateCard({required String title, required String description}) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121A2B),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF22D3EE),
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: const TextStyle(
+              color: Color(0xFFA8B3C7),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 800.ms).slide(begin: const Offset(0, 0.1));
   }
 }
