@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:shimmer/shimmer.dart';
 import '../../../services/supabase_service.dart';
 import '../../../services/image_service.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,14 +15,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
   String? _userRole;
   String? _avatarUrl;
+  String? _username;
 
   // ---- PALETA -----
   final Color bg = const Color(0xFF0B1220);
   final Color fg = const Color(0xFFE5E7EB);
   final Color accent = const Color(0xFF22D3EE);
-  final Color warn = const Color(0xFFF59E0B);
   final Color muted = const Color(0xFF94A3B8);
-  final Color card = const Color(0xFF121A2B);
 
   // overrides
   final Color secondary = const Color(0xFF0E1626);
@@ -41,23 +40,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userRole = await SupabaseService().getUserRole();
       final profile = await SupabaseService().getUserProfile();
 
-      if (profile != null && profile['avatar_url'] != null) {
-        final avatarUrl = profile['avatar_url'] as String;
-        // Agregar un timestamp para evitar el cache
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final cachedAvatarUrl = '$avatarUrl?t=$timestamp';
+      if (profile != null) {
+        _username = profile['username'] as String?;
 
-        if (mounted) {
-          setState(() {
-            _avatarUrl = cachedAvatarUrl;
-          });
-        }
-      } else {
-        // Si no hay avatar, asegurarse de que _avatarUrl sea null
-        if (mounted) {
-          setState(() {
-            _avatarUrl = null;
-          });
+        if (profile['avatar_url'] != null) {
+          final avatarUrl = profile['avatar_url'] as String;
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final cachedAvatarUrl = '$avatarUrl?t=$timestamp';
+
+          if (mounted) {
+            setState(() {
+              _avatarUrl = cachedAvatarUrl;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _avatarUrl = null;
+            });
+          }
         }
       }
     } catch (e) {
@@ -107,11 +108,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : await imageService.selectAndUploadProfilePicture();
 
       if (imageUrl != null && mounted) {
-        // Forzar una recarga completa de los datos del usuario
         await Future.delayed(const Duration(milliseconds: 500));
         await _loadUserData();
 
-        // También podemos forzar un rebuild inmediato con la nueva URL
         setState(() {
           _avatarUrl = imageUrl;
         });
@@ -137,6 +136,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _navigateToEditProfile() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+    );
+
+    if (result == true && mounted) {
+      await _loadUserData();
+    }
+  }
+
   Future<void> _signOut(BuildContext context) async {
     try {
       await SupabaseService().signOut();
@@ -155,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final user = SupabaseService().currentUser;
     final userEmail = user?.email ?? 'Usuario';
-    final userName = _extractUsername(userEmail);
+    final userName = _username ?? _extractUsername(userEmail);
 
     final userSince = _formatDateFromString(user?.createdAt);
     final lastAccess = _formatDateFromString(user?.lastSignInAt);
@@ -182,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar con botón de cámara
+            // AVATAR
             Center(
               child: Stack(
                 children: [
@@ -209,9 +218,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundImage: _avatarUrl != null
                           ? NetworkImage(_avatarUrl!)
                           : const AssetImage('assets/images/avatar.png')
-                                as ImageProvider,
+                              as ImageProvider,
                       onBackgroundImageError: (exception, stackTrace) {
-                        // Forzar recarga si hay error
                         if (mounted) {
                           setState(() {
                             _avatarUrl = null;
@@ -244,19 +252,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ).animate().scale(duration: 800.ms).fadeIn(duration: 600.ms),
             ),
+
             const SizedBox(height: 16),
 
-            Text(
-              userName,
-              style: TextStyle(
-                color: accent,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            // USERNAME + EDIT
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  userName,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _navigateToEditProfile,
+                  child: Icon(
+                    Icons.edit,
+                    color: mutedFg,
+                    size: 18,
+                  ),
+                ),
+              ],
             ).animate().fadeIn(duration: 800.ms),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
 
+            // BADGES: ROL + ESTADO
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: accent.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _userRole == 'admin'
+                            ? Icons.verified_user
+                            : Icons.person,
+                        size: 14,
+                        color: accent,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        (_userRole ?? 'Jugador').toUpperCase(),
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF16A34A).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: Color(0xFF22C55E),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'En línea',
+                        style: TextStyle(
+                          color: Color(0xFFBBF7D0),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            // EMAIL
             Text(
               userEmail,
               style: TextStyle(color: mutedFg, fontSize: 14),
@@ -264,6 +356,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 6),
 
+            // MIEMBRO DESDE
             Text(
               "Miembro desde: $userSince",
               style: TextStyle(color: mutedFg, fontSize: 12),
@@ -271,48 +364,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 24),
 
-            // INFO CARD
-            Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: secondary,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: border),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildInfoRow('Rol', _userRole ?? 'user'),
-                      _buildInfoRow(
-                        'Email verificado',
-                        user?.emailConfirmedAt != null ? 'Sí' : 'No',
-                      ),
-                      _buildInfoRow('Último acceso', lastAccess),
-                      _buildInfoRow('Estado', 'Activo'),
-                    ],
-                  ),
-                )
-                .animate()
-                .fadeIn(duration: 1000.ms)
-                .slide(begin: const Offset(0, 0.2)),
-
-            const SizedBox(height: 30),
-
-            // ESTADÍSTICAS
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _statCard("Kills", "3,421"),
-                _statCard("Misiones", "87"),
-                _statCard("Logros", "15"),
-              ],
+            // TÍTULO SECCIÓN INFO
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Información de la cuenta',
+                style: TextStyle(
+                  color: fg,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 8),
 
-            // BIO
+            // INFO CARD
             Container(
-              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: secondary,
                 borderRadius: BorderRadius.circular(16),
@@ -320,74 +390,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Column(
                 children: [
-                  Text(
-                    "Biografía",
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  _buildInfoRow('Nombre de usuario', userName),
+                  _buildInfoRow(
+                    'Email verificado',
+                    user?.emailConfirmedAt != null ? 'Sí' : 'No',
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Soy un sobreviviente de las ruinas. Me especializo en armas de largo alcance y recolección de suministros. "
-                    "He formado parte del escuadrón 'Last Dawn' desde el inicio del brote.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: mutedFg, fontSize: 15, height: 1.5),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: accent,
-                      foregroundColor: bg,
-                    ),
-                    child: const Text('Editar Biografía'),
-                  ),
+                  _buildInfoRow('Último acceso', lastAccess),
                 ],
               ),
+            )
+                .animate()
+                .fadeIn(duration: 1000.ms)
+                .slide(begin: const Offset(0, 0.2)),
+
+            const SizedBox(height: 20),
+
+            // ACCIONES RÁPIDAS
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _quickAction(
+                  icon: Icons.person,
+                  label: 'Perfil',
+                  onTap: _navigateToEditProfile,
+                ),
+                const SizedBox(width: 8),
+                _quickAction(
+                  icon: Icons.lock,
+                  label: 'Seguridad',
+                  onTap: () {
+                    // TODO: Navegar a pantalla de seguridad
+                  },
+                ),
+                const SizedBox(width: 8),
+                _quickAction(
+                  icon: Icons.settings,
+                  label: 'Ajustes',
+                  onTap: () {
+                    // TODO: Navegar a ajustes
+                  },
+                ),
+              ],
             ),
 
-            const SizedBox(height: 30),
-
-            // BOTÓN CERRAR SESIÓN
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _signOut(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: destructive,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.logout),
-                label: const Text(
-                  'Cerrar Sesión',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Últimas actividades",
-                style: TextStyle(
-                  color: accent,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            isLoading ? _buildShimmerList() : _buildActivityList(),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -397,55 +443,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ---------------------------
   // SUBWIDGETS
   // ---------------------------
-
-  Widget _buildShimmerList() {
-    return Column(
-      children: List.generate(
-        3,
-        (index) => Shimmer.fromColors(
-          baseColor: secondary,
-          highlightColor: accent.withOpacity(0.2),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            height: 70,
-            decoration: BoxDecoration(
-              color: secondary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActivityList() {
-    return Column(
-      children: List.generate(
-        3,
-        (index) => Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: secondary,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: border),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.bolt, color: accent, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  _activityText(index),
-                  style: TextStyle(color: mutedFg, fontSize: 15),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
@@ -472,39 +469,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _statCard(String title, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: accent,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget _quickAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: secondary,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: border),
+              ),
+              child: Icon(
+                icon,
+                color: accent,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: mutedFg,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(title, style: TextStyle(color: mutedFg, fontSize: 14)),
-      ],
+      ),
     );
   }
 
   // ---------------------------
   // AUX
   // ---------------------------
-
-  String _activityText(int index) {
-    switch (index) {
-      case 0:
-        return "Completó la misión 'Rescate en el Búnker'.";
-      case 1:
-        return "Desbloqueó el arma legendaria 'Reaper Shotgun'.";
-      case 2:
-        return "Formó alianza con el jugador 'ShadowFox'.";
-      default:
-        return "Actividad reciente desconocida.";
-    }
-  }
 
   String _extractUsername(String email) {
     if (email.contains('@')) {

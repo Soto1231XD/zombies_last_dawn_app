@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'routes/app_routes.dart';
 import 'services/supabase_service.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inicializar Supabase ANTES de runApp
+
+  // 1) Cargar archivo .env
+  try {
+    await dotenv.load(fileName: ".env");
+    print('✅ .env cargado correctamente');
+  } catch (e) {
+    print('❌ Error al cargar .env: $e');
+  }
+
+  // 2) Inicializar Supabase usando variables del .env
   try {
     await SupabaseService().initialize();
     print('✅ Supabase inicializado correctamente');
   } catch (e) {
     print('❌ Error inicializando Supabase: $e');
-    // Puedes decidir si quieres continuar o no
   }
-  
+
+  // 3) Lanzar app
   runApp(const LastDawnApp());
 }
 

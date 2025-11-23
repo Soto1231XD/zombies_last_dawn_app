@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+// baseUrl: 'http://10.0.2.2:8000', // Android emulator
+// baseUrl: 'http://localhost:8000', // iOS simulator
+// baseUrl: 'http://192.168.0.104:8000', // dispositivo físico

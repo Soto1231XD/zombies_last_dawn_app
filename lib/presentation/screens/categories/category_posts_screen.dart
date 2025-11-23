@@ -1,54 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/models/post_model.dart';
+import '../../../core/models/category_model.dart';
 import '../../../core/widgets/post_card.dart';
 import '../../../services/post_service.dart';
-import 'create_post_screen.dart';
-import '../../../core/models/post_model.dart';
 
-class PostsScreen extends StatefulWidget {
-  const PostsScreen({super.key});
+class CategoryPostsScreen extends StatefulWidget {
+  final Category category;
+
+  const CategoryPostsScreen({
+    super.key,
+    required this.category,
+  });
 
   @override
-  State<PostsScreen> createState() => _PostsScreenState();
+  State<CategoryPostsScreen> createState() => _CategoryPostsScreenState();
 }
 
-class _PostsScreenState extends State<PostsScreen> {
-  final PostService _postService = PostService(Supabase.instance.client);
+class _CategoryPostsScreenState extends State<CategoryPostsScreen> {
+  late final PostService _postService;
   List<PostModel> _posts = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _postService = PostService(Supabase.instance.client);
     _loadPosts();
   }
 
   Future<void> _loadPosts() async {
     try {
-      final posts = await _postService.fetchAllPosts();
+      final posts = await _postService.fetchPostsByCategory(widget.category.id);
       setState(() {
         _posts = posts;
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading posts: $e');
+      print('Error loading category posts: $e');
       setState(() {
         _isLoading = false;
       });
-    }
-  }
-
-  void _navigateToCreatePost() async {
-    try {
-      final result = await Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const CreatePostScreen()),
-      );
-
-      if (result == true) {
-        _loadPosts();
-      }
-    } catch (e) {
-      print('Error en navegación: $e');
     }
   }
 
@@ -56,32 +48,19 @@ class _PostsScreenState extends State<PostsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0b1220),
-
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Últimas Publicaciones',
+        title: Text(
+          widget.category.name,
           style: TextStyle(
-            color: Color(0xFF22d3ee),
+            color: widget.category.color,
             fontWeight: FontWeight.bold,
-            fontSize: 21,
-            letterSpacing: 0.6,
+            fontSize: 20,
           ),
         ),
       ),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToCreatePost,
-        backgroundColor: const Color(0xFF22d3ee),
-        elevation: 6,
-        child: const Icon(
-          Icons.add,
-          color: Color(0xFF001116),
-        ),
-      ),
-
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(
@@ -93,7 +72,7 @@ class _PostsScreenState extends State<PostsScreen> {
               : RefreshIndicator(
                   onRefresh: _loadPosts,
                   backgroundColor: const Color(0xFF0b1220),
-                  color: const Color(0xFF22d3ee),
+                  color: widget.category.color,
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -106,7 +85,8 @@ class _PostsScreenState extends State<PostsScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF22d3ee).withOpacity(0.08),
+                              color:
+                                  widget.category.color.withOpacity(0.12),
                               blurRadius: 18,
                               offset: const Offset(0, 4),
                             ),
@@ -114,6 +94,7 @@ class _PostsScreenState extends State<PostsScreen> {
                         ),
                         child: PostCard(
                           post: post,
+                          // 👇 mantenemos el contador de comentarios en sincronía
                           onCommentCountChanged: (newCount) {
                             setState(() {
                               _posts[index] = _posts[index].copyWith(
@@ -129,33 +110,33 @@ class _PostsScreenState extends State<PostsScreen> {
     );
   }
 
-  static Widget _buildEmptyState() {
-    return const Center(
+  Widget _buildEmptyState() {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.forum,
-            size: 90,
-            color: Color(0xFFA8B3C7),
+            Icons.forum_outlined,
+            size: 80,
+            color: widget.category.color.withOpacity(0.7),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 16),
           Text(
-            'Aún no hay publicaciones...',
-            style: TextStyle(
+            'No hay publicaciones en esta categoría todavía',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
               color: Color(0xFFA8B3C7),
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 8),
-          Text(
-            'Sé el primero en compartir algo sobre el apocalipsis 🧟‍♂️',
+          const SizedBox(height: 8),
+          const Text(
+            'Sé el primero en compartir algo aquí 🧟‍♂️',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Color(0xFF94a3b8),
               fontSize: 14,
-              height: 1.3,
             ),
           ),
         ],

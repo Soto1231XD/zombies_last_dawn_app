@@ -1,0 +1,31 @@
+# Configuración para archivos Flutter
+*.dart text
+*.yaml text
+*.yml text
+*.json text
+*.md text
+*.txt text
+*.css text
+*.html text
+
+# Especificar archivos binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.pdf binary
+*.zip binary
+
+# Archivos de Flutter - tratarlos como texto pero no convertir líneas
+linux/flutter/generated_plugin_registrant.cc -text
+linux/flutter/generated_plugins.cmake -text
+macos/Flutter/GeneratedPluginRegistrant.swift -text
+windows/flutter/generated_plugin_registrant.cc -text
+windows/flutter/generated_plugins.cmake -text
+
+# Archivos de construcción - no versionar
+build/ export-ignore
+.android/ export-ignore
+.ios/ export-ignore

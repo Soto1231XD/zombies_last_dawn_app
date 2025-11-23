@@ -1,8 +1,22 @@
-// lib/presentation/screens/chat/chat_screen.dart
 import 'package:flutter/material.dart';
 import '../../../../services/chat_service.dart';
 import '../../../../core/models/chat_message.dart';
 import 'widget/message_bubble.dart';
+
+// PALETA (igual que tu globals.css)
+const Color kBg = Color(0xFF0B1220);
+const Color kFg = Color(0xFFE5E7EB);
+const Color kAccent = Color(0xFF22D3EE);
+const Color kWarn = Color(0xFFF59E0B);
+const Color kMuted = Color(0xFF94A3B8);
+const Color kCard = Color(0xFF121A2B);
+
+const Color kPrimaryForeground = Color(0xFF001116);
+const Color kSecondary = Color(0xFF0E1626);
+const Color kMutedForeground = Color(0xFFA8B3C7);
+const Color kDestructive = Color(0xFFEF4444);
+const Color kBorder = Color.fromRGBO(255, 255, 255, 0.12);
+const Color kInput = Color.fromRGBO(255, 255, 255, 0.15);
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -15,11 +29,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
-  final ChatService _chatService = ChatService(
-    // baseUrl: 'http://10.0.2.2:8000', // Para Android emulator
-    // baseUrl: 'http://localhost:8000', // Para iOS simulator
-    baseUrl: 'http://192.168.0.104:8000', // Para dispositivo físico
-  );
+
+  // AHORA sin URL hardcodeada: se toma de EnvConfig.ragApiBaseUrl
+  final ChatService _chatService = ChatService();
 
   bool _isLoading = false;
   bool _apiConnected = false;
@@ -28,7 +40,6 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _checkApiConnection();
-    // Mensaje de bienvenida
     _addMessage(
       '¡Hola! Soy tu asistente de Zombies: Last Dawn. ¿En qué puedo ayudarte sobre el juego?',
       isUser: false,
@@ -40,7 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _apiConnected = connected;
     });
-    
+
     if (!connected) {
       _addMessage(
         ' No puedo conectarme con el servidor. Asegúrate de que tu RAG_API esté ejecutándose en el puerto 8000.',
@@ -50,7 +61,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _addMessage(String content, {bool isUser = true, MessageType type = MessageType.text}) {
+  void _addMessage(
+    String content, {
+    bool isUser = true,
+    MessageType type = MessageType.text,
+  }) {
     final message = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
@@ -89,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = true;
     });
 
-    // Agregar mensaje de carga
+    // Mensaje de carga
     final loadingMessage = ChatMessage(
       id: 'loading-${DateTime.now().millisecondsSinceEpoch}',
       content: 'Buscando en la información del juego...',
@@ -103,29 +118,31 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     try {
-      // Preparar historial excluyendo el mensaje de carga actual
       final history = _messages
-          .where((msg) => msg.type != MessageType.loading && msg.id != loadingMessage.id)
-          .map((msg) => ChatMessage(
-                id: msg.id,
-                content: msg.content,
-                isUser: msg.isUser,
-                timestamp: msg.timestamp,
-              ))
+          .where((msg) =>
+              msg.type != MessageType.loading &&
+              msg.id != loadingMessage.id)
+          .map(
+            (msg) => ChatMessage(
+              id: msg.id,
+              content: msg.content,
+              isUser: msg.isUser,
+              timestamp: msg.timestamp,
+              type: msg.type,
+            ),
+          )
           .toList();
 
       final response = await _chatService.sendMessage(
-        message, 
+        message,
         history: history,
       );
-      
-      // Remover mensaje de loading y agregar respuesta
+
       setState(() {
         _messages.removeWhere((msg) => msg.id == loadingMessage.id);
         _addMessage(response, isUser: false);
       });
     } catch (e) {
-      // Remover mensaje de loading y agregar error
       setState(() {
         _messages.removeWhere((msg) => msg.id == loadingMessage.id);
         _addMessage(
@@ -144,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F16),
+      backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -153,46 +170,45 @@ class _ChatScreenState extends State<ChatScreen> {
             const Text(
               'Asistente del juego',
               style: TextStyle(
-                color: Colors.greenAccent,
+                color: kAccent,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(width: 8),
             Icon(
               _apiConnected ? Icons.check_circle : Icons.error,
-              color: _apiConnected ? Colors.greenAccent : Colors.orange,
+              color: _apiConnected ? kAccent : kWarn,
               size: 16,
             ),
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.greenAccent),
+          icon: const Icon(Icons.arrow_back, color: kAccent),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Column(
         children: [
-          // Banner de estado de conexión
           if (!_apiConnected)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
-              color: Colors.orange.withOpacity(0.2),
+              color: kWarn.withOpacity(0.12),
               child: Row(
                 children: [
-                  const Icon(Icons.warning, color: Colors.orange, size: 16),
+                  const Icon(Icons.warning, color: kWarn, size: 16),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
                       'API no conectada - Ejecuta: uvicorn app:app --reload --port 8000',
                       style: TextStyle(
-                        color: Colors.orange,
+                        color: kWarn,
                         fontSize: 12,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.orange, size: 16),
+                    icon: const Icon(Icons.refresh, color: kWarn, size: 16),
                     onPressed: _checkApiConnection,
                   ),
                 ],
@@ -200,35 +216,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           Expanded(
             child: _messages.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.menu_book,
-                          size: 80,
-                          color: Colors.greenAccent,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Asistente del juego',
-                          style: TextStyle(
-                            color: Colors.greenAccent,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Pregunta sobre armas, misiones, zombies...',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                ? const _EmptyState()
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
@@ -238,53 +226,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
           ),
-          // Input de mensaje
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: const Color(0xFF1A1F29),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Pregunta sobre el juego...',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: _apiConnected 
-                          ? const Color(0xFF2D3748) 
-                          : Colors.grey.shade800,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    onSubmitted: (_) => _sendMessage(),
-                    enabled: _apiConnected && !_isLoading,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: _apiConnected && !_isLoading
-                      ? Colors.greenAccent
-                      : Colors.grey,
-                  child: IconButton(
-                    icon: _isLoading
-                        ? const CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 2,
-                          )
-                        : const Icon(Icons.send, color: Colors.black),
-                    onPressed: _apiConnected && !_isLoading ? _sendMessage : null,
-                  ),
-                ),
-              ],
-            ),
+          _InputBar(
+            controller: _messageController,
+            isLoading: _isLoading,
+            apiConnected: _apiConnected,
+            onSend: _sendMessage,
           ),
         ],
       ),
@@ -296,5 +242,120 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+}
+
+// -------------- SUBWIDGETS --------------
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.menu_book,
+            size: 80,
+            color: kAccent,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Asistente del juego',
+            style: TextStyle(
+              color: kFg,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Pregunta sobre armas, misiones, zombies...',
+            style: TextStyle(
+              color: kMutedForeground,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InputBar extends StatelessWidget {
+  final TextEditingController controller;
+  final bool isLoading;
+  final bool apiConnected;
+  final VoidCallback onSend;
+
+  const _InputBar({
+    required this.controller,
+    required this.isLoading,
+    required this.apiConnected,
+    required this.onSend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = apiConnected && !isLoading;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: kSecondary,
+        border: Border(
+          top: BorderSide(color: kBorder, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              style: const TextStyle(color: kFg),
+              decoration: InputDecoration(
+                hintText: 'Pregunta sobre el juego...',
+                hintStyle: const TextStyle(color: kMutedForeground),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: enabled
+                    ? kInput.withOpacity(0.4)
+                    : Colors.black.withOpacity(0.3),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              onSubmitted: (_) => onSend(),
+              enabled: enabled,
+            ),
+          ),
+          const SizedBox(width: 8),
+          CircleAvatar(
+            radius: 24,
+            backgroundColor:
+                enabled ? kAccent : Colors.grey.withOpacity(0.6),
+            child: IconButton(
+              icon: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        color: kPrimaryForeground,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.send, color: kPrimaryForeground),
+              onPressed: enabled ? onSend : null,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

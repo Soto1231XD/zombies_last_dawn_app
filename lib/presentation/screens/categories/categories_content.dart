@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
 import '../../../services/category_service.dart';
 import '../../../core/models/category_model.dart';
+import '../../screens/categories/category_posts_screen.dart';
 
 class CategoriesContent extends StatefulWidget {
   const CategoriesContent({super.key});
@@ -41,7 +43,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
         future: _categoriesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(
                 color: Colors.greenAccent,
               ),
@@ -53,43 +55,60 @@ class _CategoriesContentState extends State<CategoriesContent> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
-                  SizedBox(height: 16),
-                  Text(
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.redAccent,
+                    size: 64,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
                     'Error al cargar categorías',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     'Verifica tu conexión a internet',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _refreshCategories,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.greenAccent,
                       foregroundColor: Colors.black,
                     ),
-                    child: Text('Reintentar'),
+                    child: const Text('Reintentar'),
                   ),
                 ],
               ),
             );
           }
 
-          final categories = snapshot.data!;
+          final categories = snapshot.data ?? [];
 
           if (categories.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.category_outlined, color: Colors.grey, size: 64),
+                children: const [
+                  Icon(
+                    Icons.category_outlined,
+                    color: Colors.grey,
+                    size: 64,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     'No hay categorías disponibles',
-                    style: TextStyle(color: Colors.grey, fontSize: 18),
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 18,
+                    ),
                   ),
                 ],
               ),
@@ -122,11 +141,9 @@ class _CategoriesContentState extends State<CategoriesContent> {
   }
 
   void _showCategoryPosts(BuildContext context, Category category) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navegando a posts de ${category.name}'),
-        backgroundColor: category.color,
-        duration: const Duration(seconds: 2),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CategoryPostsScreen(category: category),
       ),
     );
   }
@@ -149,7 +166,10 @@ class _CategoriesContentState extends State<CategoriesContent> {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: category.color.withOpacity(0.4), width: 1.5),
+          border: Border.all(
+            color: category.color.withOpacity(0.4),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
               color: category.color.withOpacity(0.2),
@@ -161,7 +181,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Mostrar imagen si existe, sino mostrar icono
+            // Imagen si existe, si no icono
             if (category.imageUrl != null && category.imageUrl!.isNotEmpty)
               Container(
                 width: 60,
@@ -175,7 +195,11 @@ class _CategoriesContentState extends State<CategoriesContent> {
                 ),
               )
             else
-              Icon(category.icon, color: category.color, size: 42),
+              Icon(
+                category.icon,
+                color: category.color,
+                size: 42,
+              ),
             const SizedBox(height: 12),
             Text(
               category.name,
@@ -191,7 +215,7 @@ class _CategoriesContentState extends State<CategoriesContent> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
                   category.description!,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 12,
                   ),

@@ -16,12 +16,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeContent(),
-    PostsScreen(),
-    CategoriesContent(),
-    ProfileScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    // Aquí conectamos el HomeContent con el cambio de pestaña
+    _screens = [
+      HomeContent(
+        onChangeTab: _onItemTapped,
+      ),
+      const PostsScreen(),
+      const CategoriesContent(),
+      const ProfileScreen(),
+    ];
+  }
 
   final List<String> _titles = [
     'Inicio',
@@ -57,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1220), // *** fondo base ***
+      backgroundColor: const Color(0xFF0B1220),
 
       appBar: _selectedIndex != 3
           ? AppBar(
@@ -67,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text(
                 _titles[_selectedIndex],
                 style: const TextStyle(
-                  color: Color(0xFF22D3EE), // accent
+                  color: Color(0xFF22D3EE),
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -103,14 +112,11 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        backgroundColor: const Color(0xFF0B1220), // base
-
-        selectedItemColor: const Color(0xFF22D3EE), // accent
-        unselectedItemColor: const Color(0xFF94A3B8), // muted
-
+        backgroundColor: const Color(0xFF0B1220),
+        selectedItemColor: const Color(0xFF22D3EE),
+        unselectedItemColor: const Color(0xFF94A3B8),
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),

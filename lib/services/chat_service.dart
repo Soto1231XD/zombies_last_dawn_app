@@ -1,17 +1,21 @@
-// lib/services/chat_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../core/models/chat_message.dart';
+import '../config/env_config.dart';
 
 class ChatService {
   final String baseUrl;
 
-  ChatService({required this.baseUrl});
+  ChatService({String? baseUrl})
+      : baseUrl = baseUrl ?? EnvConfig.ragApiBaseUrl;
 
-  Future<String> sendMessage(String message, {List<ChatMessage>? history}) async {
+  Future<String> sendMessage(
+    String message, {
+    List<ChatMessage>? history,
+  }) async {
     try {
       print('🟡 Enviando mensaje a la API: $message');
-      
+
       final response = await http.post(
         Uri.parse('$baseUrl/chat'),
         headers: {
@@ -24,7 +28,7 @@ class ChatService {
       );
 
       print('🟢 Respuesta de la API: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final answer = data['answer'] ?? 'No response from AI';
@@ -39,7 +43,7 @@ class ChatService {
     }
   }
 
-  // Método para verificar que la API esté funcionando
+  // Healthcheck de la API
   Future<bool> checkHealth() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/health'));
